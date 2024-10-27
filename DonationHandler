@@ -1,0 +1,40 @@
+//This class manages the donation records by creating new donations and updating the status as they are matched with recipients.
+public class DonationHandler {
+
+    // Method to create a new donation record
+    public static Id createDonationRecord(String foodType, Integer quantity, String expirationDate, Id donorId) {
+        // Initialize a new Donation__c record
+        Donation__c newDonation = new Donation__c();
+        newDonation.Food_Type__c = foodType;
+        newDonation.Quantity__c = quantity;
+        newDonation.Expiration_Date__c = Date.parse(expirationDate); // Parse string date to Date format
+        newDonation.Donor__c = donorId;
+        newDonation.Status__c = 'Available'; // Default status for new donations
+
+        // Insert the donation record
+        try {
+            insert newDonation;
+            System.debug('Donation record created with ID: ' + newDonation.Id);
+            return newDonation.Id;
+        } catch (DmlException e) {
+            System.debug('Error creating donation record: ' + e.getMessage());
+            return null;
+        }
+    }
+
+    // Method to update the status of the donation record when matched with a recipient
+    public static void matchDonationToRecipient(Id donationId, Id recipientId) {
+        try {
+            Donation__c donation = [SELECT Id, Status__c FROM Donation__c WHERE Id = :donationId LIMIT 1];
+            donation.Status__c = 'Matched'; // Change status to "Matched"
+
+            // Optionally, you could add a field to link to the Recipient
+            donation.Recipient__c = recipientId;
+
+            update donation;
+            System.debug('Donation matched with recipient and updated.');
+        } catch (Exception e) {
+            System.debug('Error matching donation: ' + e.getMessage());
+        }
+    }
+}
